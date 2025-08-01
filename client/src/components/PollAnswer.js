@@ -28,7 +28,9 @@ const OptionsContainer = styled.div`
   gap: 1rem;
 `;
 
-const OptionButton = styled(motion.button)`
+const OptionButton = styled(motion.button).withConfig({
+  shouldForwardProp: (prop) => !['initial', 'animate', 'exit', 'transition', 'whileHover', 'whileTap', 'variants'].includes(prop)
+})`
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -56,7 +58,9 @@ const OptionButton = styled(motion.button)`
   }
 `;
 
-const OptionNumber = styled.div`
+const OptionNumber = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'selected'
+})`
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -70,7 +74,9 @@ const OptionNumber = styled.div`
   transition: all 0.3s ease;
 `;
 
-const OptionText = styled.div`
+const OptionText = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'selected'
+})`
   flex: 1;
   text-align: left;
   color: ${props => props.selected ? 'var(--primary-purple)' : 'var(--text-primary)'};
@@ -84,7 +90,9 @@ const SelectedIndicator = styled.div`
   font-size: 1.2rem;
 `;
 
-const SubmitButton = styled(motion.button)`
+const SubmitButton = styled(motion.button).withConfig({
+  shouldForwardProp: (prop) => !['initial', 'animate', 'exit', 'transition', 'whileHover', 'whileTap', 'variants'].includes(prop)
+})`
   background: linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-indigo) 100%);
   color: var(--text-primary);
   border: none;
@@ -125,7 +133,9 @@ const RatingScale = styled.div`
   margin: 1rem 0;
 `;
 
-const RatingStar = styled.div`
+const RatingStar = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'selected'
+})`
   font-size: 2rem;
   color: ${props => props.selected ? 'var(--primary-purple)' : 'var(--border)'};
   cursor: pointer;
@@ -144,7 +154,9 @@ const YesNoContainer = styled.div`
   margin: 1rem 0;
 `;
 
-const YesNoButton = styled(motion.button)`
+const YesNoButton = styled(motion.button).withConfig({
+  shouldForwardProp: (prop) => !['selected', 'initial', 'animate', 'exit', 'transition', 'whileHover', 'whileTap', 'variants'].includes(prop)
+})`
   padding: 1rem 2rem;
   border: 2px solid var(--border);
   border-radius: 12px;

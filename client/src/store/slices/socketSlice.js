@@ -1,20 +1,20 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  socket: null,
   isConnected: false,
   connectionError: null,
+  socketId: null,
 };
 
 const socketSlice = createSlice({
   name: 'socket',
   initialState,
   reducers: {
-    setSocket: (state, action) => {
-      state.socket = action.payload;
-    },
     setConnected: (state, action) => {
       state.isConnected = action.payload;
+    },
+    setSocketId: (state, action) => {
+      state.socketId = action.payload;
     },
     setConnectionError: (state, action) => {
       state.connectionError = action.payload;
@@ -22,14 +22,20 @@ const socketSlice = createSlice({
     clearConnectionError: (state) => {
       state.connectionError = null;
     },
+    clearSocket: (state) => {
+      state.isConnected = false;
+      state.socketId = null;
+      state.connectionError = null;
+    },
   },
 });
 
 export const {
-  setSocket,
   setConnected,
+  setSocketId,
   setConnectionError,
   clearConnectionError,
+  clearSocket,
 } = socketSlice.actions;
 
 export default socketSlice.reducer; 

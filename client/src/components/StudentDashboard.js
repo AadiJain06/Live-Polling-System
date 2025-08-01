@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -17,7 +17,7 @@ import {
   addUser,
   removeUser
 } from '../store/slices/pollSlice';
-import { setSocket, setConnected } from '../store/slices/socketSlice';
+import { setConnected, setSocketId } from '../store/slices/socketSlice';
 import { addMessage, setChatOpen, setChatHistory, setParticipants } from '../store/slices/chatSlice';
 import io from 'socket.io-client';
 import toast from 'react-hot-toast';
@@ -68,7 +68,9 @@ const HeaderRight = styled.div`
   gap: 1rem;
 `;
 
-const ActionButton = styled(motion.button)`
+const ActionButton = styled(motion.button).withConfig({
+  shouldForwardProp: (prop) => !['initial', 'animate', 'exit', 'transition', 'whileHover', 'whileTap', 'variants'].includes(prop)
+})`
   background: linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-indigo) 100%);
   color: white;
   border: none;
@@ -128,7 +130,9 @@ const QuestionTitle = styled.h2`
   gap: 0.5rem;
 `;
 
-const Timer = styled.div`
+const Timer = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'timeLeft'
+})`
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -147,7 +151,9 @@ const Timer = styled.div`
   }
 `;
 
-const StatusIndicator = styled.div`
+const StatusIndicator = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'isConnected'
+})`
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -156,7 +162,9 @@ const StatusIndicator = styled.div`
   font-weight: 600;
 `;
 
-const FloatingChatButton = styled(motion.button)`
+const FloatingChatButton = styled(motion.button).withConfig({
+  shouldForwardProp: (prop) => !['initial', 'animate', 'exit', 'transition', 'whileHover', 'whileTap', 'variants'].includes(prop)
+})`
   position: fixed;
   bottom: 2rem;
   right: 2rem;
@@ -182,7 +190,9 @@ const FloatingChatButton = styled(motion.button)`
   }
 `;
 
-const StatusDot = styled.div`
+const StatusDot = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'isConnected'
+})`
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -235,7 +245,9 @@ const AnsweredBadge = styled.div`
   font-size: 0.9rem;
 `;
 
-const KickedOutModal = styled(motion.div)`
+const KickedOutModal = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['initial', 'animate', 'exit', 'transition', 'whileHover', 'whileTap', 'variants'].includes(prop)
+})`
   position: fixed;
   top: 0;
   left: 0;
@@ -282,7 +294,9 @@ const ContinueButton = styled(ActionButton)`
 `;
 
 // Performance modal styled components
-const ChatOverlay = styled(motion.div)`
+const ChatOverlay = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['initial', 'animate', 'exit', 'transition', 'whileHover', 'whileTap', 'variants'].includes(prop)
+})`
   position: fixed;
   top: 0;
   left: 0;
@@ -295,7 +309,9 @@ const ChatOverlay = styled(motion.div)`
   align-items: center;
 `;
 
-const ChatContainer = styled(motion.div)`
+const ChatContainer = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['initial', 'animate', 'exit', 'transition', 'whileHover', 'whileTap', 'variants'].includes(prop)
+})`
   background: var(--surface);
   width: 500px;
   max-width: 90vw;
@@ -346,8 +362,10 @@ const StudentDashboard = () => {
   const navigate = useNavigate();
   const { userName } = useSelector((state) => state.auth);
   const { currentPoll, results, hasAnswered, timeLeft, error, kickedOut } = useSelector((state) => state.poll);
-  const { socket, isConnected } = useSelector((state) => state.socket);
+  const { isConnected } = useSelector((state) => state.socket);
   const { isChatOpen } = useSelector((state) => state.chat);
+  
+  const socketRef = useRef(null);
   
   const [showPerformance, setShowPerformance] = useState(false);
   const [studentPerformance, setStudentPerformance] = useState(null);
@@ -366,7 +384,8 @@ const StudentDashboard = () => {
     newSocket.on('connect', () => {
       console.log('Socket connected successfully as student!');
       dispatch(setConnected(true));
-      dispatch(setSocket(newSocket));
+      dispatch(setSocketId(newSocket.id));
+      socketRef.current = newSocket;
       
       // Join room as student
       console.log('Joining room as student...');
@@ -487,8 +506,8 @@ const StudentDashboard = () => {
   }, [error, dispatch]);
 
   const handleLogout = () => {
-    if (socket) {
-      socket.disconnect();
+    if (socketRef.current) {
+      socketRef.current.disconnect();
     }
     dispatch(logout());
     navigate('/');
@@ -504,8 +523,8 @@ const StudentDashboard = () => {
   };
 
   const handleGetPerformance = () => {
-    if (socket && userName) {
-      socket.emit('get-student-performance', userName);
+    if (socketRef.current && userName) {
+      socketRef.current.emit('get-student-performance', userName);
       setShowPerformance(true);
     }
   };
@@ -640,7 +659,7 @@ const StudentDashboard = () => {
               
               <PollAnswer
                 poll={currentPoll}
-                socket={socket}
+                socket={socketRef.current}
                 onAnswer={() => dispatch(setHasAnswered(true))}
               />
             </Section>
@@ -682,7 +701,7 @@ const StudentDashboard = () => {
       </MainContent>
 
       <AnimatePresence>
-        {isChatOpen && <Chat />}
+        {isChatOpen && <Chat socket={socketRef.current} />}
       </AnimatePresence>
 
       <AnimatePresence>

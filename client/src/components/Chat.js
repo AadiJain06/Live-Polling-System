@@ -16,7 +16,9 @@ import { removeUser } from '../store/slices/pollSlice';
 import { socket } from '../store/slices/socketSlice';
 import toast from 'react-hot-toast';
 
-const ChatOverlay = styled(motion.div)`
+const ChatOverlay = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['initial', 'animate', 'exit', 'transition', 'whileHover', 'whileTap', 'variants'].includes(prop)
+})`
   position: fixed;
   top: 0;
   left: 0;
@@ -29,7 +31,9 @@ const ChatOverlay = styled(motion.div)`
   align-items: center;
 `;
 
-const ChatContainer = styled(motion.div)`
+const ChatContainer = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => !['initial', 'animate', 'exit', 'transition', 'whileHover', 'whileTap', 'variants'].includes(prop)
+})`
   background: var(--surface);
   width: 500px;
   max-width: 90vw;
@@ -81,7 +85,9 @@ const TabContainer = styled.div`
   border-bottom: 1px solid var(--border);
 `;
 
-const Tab = styled.button`
+const Tab = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== 'active'
+})`
   flex: 1;
   padding: 1rem;
   background: ${props => props.active ? 'var(--background)' : 'transparent'};
@@ -116,7 +122,9 @@ const MessagesContainer = styled.div`
   gap: 1rem;
 `;
 
-const MessageBubble = styled.div`
+const MessageBubble = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'isOwn'
+})`
   max-width: 80%;
   padding: 0.75rem 1rem;
   border-radius: 18px;
@@ -127,7 +135,9 @@ const MessageBubble = styled.div`
   position: relative;
 `;
 
-const MessageSender = styled.div`
+const MessageSender = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'isOwn'
+})`
   font-size: 0.8rem;
   font-weight: 600;
   margin-bottom: 0.25rem;
@@ -139,7 +149,9 @@ const MessageText = styled.div`
   line-height: 1.4;
 `;
 
-const MessageTime = styled.div`
+const MessageTime = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'isOwn'
+})`
   font-size: 0.7rem;
   margin-top: 0.25rem;
   opacity: 0.7;
@@ -223,7 +235,9 @@ const ParticipantInfo = styled.div`
   gap: 0.75rem;
 `;
 
-const ParticipantIcon = styled.div`
+const ParticipantIcon = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'userType'
+})`
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -281,11 +295,10 @@ const EmptyState = styled.div`
   color: var(--text-muted);
 `;
 
-const Chat = () => {
+const Chat = ({ socket }) => {
   const dispatch = useDispatch();
   const { messages, participants } = useSelector((state) => state.chat);
   const { userType } = useSelector((state) => state.auth);
-  const { socket } = useSelector((state) => state.socket);
   
   const [activeTab, setActiveTab] = useState('chat');
   const [messageText, setMessageText] = useState('');

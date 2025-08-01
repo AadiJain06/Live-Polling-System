@@ -24,7 +24,7 @@ function App() {
     <Provider store={store}>
       <ThemeProvider>
         <GlobalStyles />
-        <Router>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                   <div className="App">
           <Settings isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
             <Toaster

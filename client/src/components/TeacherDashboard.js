@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
@@ -15,7 +15,7 @@ import {
   addUser,
   removeUser
 } from '../store/slices/pollSlice';
-import { setSocket, setConnected } from '../store/slices/socketSlice';
+import { setConnected, setSocketId } from '../store/slices/socketSlice';
 import { addMessage, setChatOpen, setChatHistory, setParticipants } from '../store/slices/chatSlice';
 import io from 'socket.io-client';
 import toast from 'react-hot-toast';
@@ -68,7 +68,9 @@ const HeaderRight = styled.div`
   gap: 1rem;
 `;
 
-const ActionButton = styled(motion.button)`
+const ActionButton = styled(motion.button).withConfig({
+  shouldForwardProp: (prop) => !['initial', 'animate', 'exit', 'transition', 'whileHover', 'whileTap', 'variants'].includes(prop)
+})`
   background: linear-gradient(135deg, var(--primary-purple) 0%, var(--primary-indigo) 100%);
   color: white;
   border: none;
@@ -150,7 +152,9 @@ const SecondaryButton = styled(ActionButton)`
   }
 `;
 
-const StatusIndicator = styled.div`
+const StatusIndicator = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'isConnected'
+})`
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -159,7 +163,9 @@ const StatusIndicator = styled.div`
   font-weight: 600;
 `;
 
-const FloatingChatButton = styled(motion.button)`
+const FloatingChatButton = styled(motion.button).withConfig({
+  shouldForwardProp: (prop) => !['initial', 'animate', 'exit', 'transition', 'whileHover', 'whileTap', 'variants'].includes(prop)
+})`
   position: fixed;
   bottom: 2rem;
   right: 2rem;
@@ -185,7 +191,9 @@ const FloatingChatButton = styled(motion.button)`
   }
 `;
 
-const StatusDot = styled.div`
+const StatusDot = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'isConnected'
+})`
   width: 8px;
   height: 8px;
   border-radius: 50%;
@@ -229,8 +237,10 @@ const TeacherDashboard = () => {
   const navigate = useNavigate();
   const { userName } = useSelector((state) => state.auth);
   const { currentPoll, results, timeLeft, error, connectedUsers, userList } = useSelector((state) => state.poll);
-  const { socket, isConnected } = useSelector((state) => state.socket);
+  const { isConnected } = useSelector((state) => state.socket);
   const { isChatOpen } = useSelector((state) => state.chat);
+  
+  const socketRef = useRef(null);
   
   const [showPollCreator, setShowPollCreator] = useState(false);
   const [showPollHistory, setShowPollHistory] = useState(false);
@@ -252,7 +262,8 @@ const TeacherDashboard = () => {
     newSocket.on('connect', () => {
       console.log('Socket connected successfully!');
       dispatch(setConnected(true));
-      dispatch(setSocket(newSocket));
+      dispatch(setSocketId(newSocket.id));
+      socketRef.current = newSocket;
       
       // Join room as teacher
       console.log('Joining room as teacher...');
@@ -377,8 +388,8 @@ const TeacherDashboard = () => {
   }, [error, dispatch]);
 
   const handleLogout = () => {
-    if (socket) {
-      socket.disconnect();
+    if (socketRef.current) {
+      socketRef.current.disconnect();
     }
     dispatch(logout());
     navigate('/');
@@ -389,8 +400,8 @@ const TeacherDashboard = () => {
   };
 
   const handleAskNewQuestion = () => {
-    if (socket) {
-      socket.emit('ask-new-question');
+    if (socketRef.current) {
+      socketRef.current.emit('ask-new-question');
     }
   };
 
@@ -399,14 +410,14 @@ const TeacherDashboard = () => {
   };
 
   const handleStartSession = () => {
-    if (socket) {
-      socket.emit('start-session');
+    if (socketRef.current) {
+      socketRef.current.emit('start-session');
     }
   };
 
   const handleEndSession = () => {
-    if (socket) {
-      socket.emit('end-session');
+    if (socketRef.current) {
+      socketRef.current.emit('end-session');
     }
   };
 
@@ -757,7 +768,7 @@ const TeacherDashboard = () => {
         {showPollCreator && (
           <PollCreator
             onClose={() => setShowPollCreator(false)}
-            socket={socket}
+            socket={socketRef.current}
           />
         )}
         {showPollHistory && (
@@ -783,7 +794,7 @@ const TeacherDashboard = () => {
       </AnimatePresence>
 
       <AnimatePresence>
-        {isChatOpen && <Chat />}
+        {isChatOpen && <Chat socket={socketRef.current} />}
       </AnimatePresence>
       
       <FloatingChatButton

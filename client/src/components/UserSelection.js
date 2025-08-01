@@ -58,7 +58,9 @@ const RoleSelectionContainer = styled.div`
   }
 `;
 
-const RoleCard = styled(motion.div)`
+const RoleCard = styled(motion.div).withConfig({
+  shouldForwardProp: (prop) => prop !== 'selected'
+})`
   width: 300px;
   padding: 2rem;
   border: 2px solid ${props => props.selected ? 'var(--primary-purple)' : 'var(--border)'};

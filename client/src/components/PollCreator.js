@@ -323,7 +323,9 @@ const AnonymousToggle = styled.div`
   }
 `;
 
-const ToggleSwitch = styled.div`
+const ToggleSwitch = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'active'
+})`
   width: 40px;
   height: 20px;
   background: ${props => props.active ? 'var(--primary-purple)' : 'var(--border)'};

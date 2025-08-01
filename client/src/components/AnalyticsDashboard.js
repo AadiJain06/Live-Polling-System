@@ -66,7 +66,9 @@ const TabsContainer = styled.div`
   border-bottom: 1px solid var(--border);
 `;
 
-const Tab = styled.button`
+const Tab = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== 'active'
+})`
   background: ${props => props.active ? 'var(--primary-purple)' : 'transparent'};
   color: ${props => props.active ? 'white' : 'var(--text-secondary)'};
   border: none;
@@ -159,7 +161,9 @@ const ParticipantInfo = styled.div`
   gap: 1rem;
 `;
 
-const ParticipantStatus = styled.div`
+const ParticipantStatus = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'answered'
+})`
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -257,7 +261,9 @@ const AccuracyItem = styled.div`
   border: 1px solid var(--border);
 `;
 
-const AccuracyValue = styled.div`
+const AccuracyValue = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== 'correct'
+})`
   font-size: 1.5rem;
   font-weight: 700;
   color: ${props => props.correct ? 'var(--success)' : 'var(--error)'};
@@ -284,19 +290,31 @@ const AnalyticsDashboard = ({ isOpen, onClose, currentPoll, connectedUsers }) =>
 
   const fetchAnalyticsData = async () => {
     try {
+      const serverUrl = process.env.REACT_APP_SERVER_URL || 'http://localhost:5000';
       const [analyticsResponse, participationResponse] = await Promise.all([
-        fetch('/api/analytics/current'),
-        fetch('/api/analytics/participation')
+        fetch(`${serverUrl}/api/analytics/current`),
+        fetch(`${serverUrl}/api/analytics/participation`)
       ]);
       
       if (analyticsResponse.ok) {
         const analytics = await analyticsResponse.json();
-        setAnalyticsData(analytics);
+        if (analytics.error) {
+          console.log('No active poll for analytics');
+          setAnalyticsData(null);
+        } else {
+          setAnalyticsData(analytics);
+        }
+      } else {
+        console.log('Analytics endpoint not available');
+        setAnalyticsData(null);
       }
       
       if (participationResponse.ok) {
         const participation = await participationResponse.json();
         setParticipationData(participation);
+      } else {
+        console.log('Participation endpoint not available');
+        setParticipationData([]);
       }
     } catch (error) {
       console.error('Error fetching analytics:', error);
@@ -304,7 +322,16 @@ const AnalyticsDashboard = ({ isOpen, onClose, currentPoll, connectedUsers }) =>
   };
 
   const calculateMetrics = () => {
-    if (!analyticsData) return {};
+    if (!analyticsData || analyticsData.error) return {
+      totalStudents: 0,
+      answeredStudents: 0,
+      participationRate: 0,
+      averageResponseTime: 0,
+      completionRate: 0,
+      correctAnswers: 0,
+      incorrectAnswers: 0,
+      accuracyRate: 0
+    };
     
     return {
       totalStudents: analyticsData.totalStudents || 0,
@@ -364,6 +391,27 @@ const AnalyticsDashboard = ({ isOpen, onClose, currentPoll, connectedUsers }) =>
 
   const renderOverview = () => {
     const metrics = calculateMetrics();
+    
+    // Show message if no active poll
+    if (!currentPoll || !analyticsData || analyticsData.error) {
+      return (
+        <div style={{ 
+          textAlign: 'center', 
+          padding: '3rem', 
+          color: 'var(--text-secondary)',
+          background: 'var(--surface)',
+          borderRadius: '12px',
+          border: '1px solid var(--border)'
+        }}>
+          <div style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>
+            📊 No Active Poll
+          </div>
+          <div>
+            Analytics will be available when a poll is active. Start a poll to see real-time analytics data.
+          </div>
+        </div>
+      );
+    }
     
     return (
       <div>
