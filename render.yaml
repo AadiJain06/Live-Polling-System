@@ -1,8 +1,9 @@
 services:
-  # Backend API Service
+  # Backend API Service (Web Service)
   - type: web
     name: live-polling-backend
     env: node
+    instanceType: free
     buildCommand: cd server && npm install
     startCommand: cd server && npm start
     envVars:
