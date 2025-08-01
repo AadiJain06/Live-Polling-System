@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { FaTimes, FaPlus, FaTrash, FaClock, FaList, FaCheckCircle, FaStar, FaImage, FaEyeSlash, FaAlignLeft } from 'react-icons/fa';
+import { FaTimes, FaPlus, FaTrash, FaClock, FaList, FaCheckCircle, FaStar, FaEyeSlash, FaAlignLeft } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
 const Overlay = styled(motion.div)`
@@ -346,63 +346,7 @@ const ToggleSwitch = styled.div.withConfig({
   }
 `;
 
-const RatingContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-`;
 
-const RatingScale = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-`;
-
-const RatingOption = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.5rem;
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    border-color: var(--primary-purple);
-  }
-`;
-
-const TextResponseArea = styled.textarea`
-  width: 100%;
-  padding: 1rem;
-      border: 2px solid var(--border);
-  border-radius: 8px;
-  font-size: 1rem;
-  resize: vertical;
-  min-height: 100px;
-  transition: all 0.3s ease;
-  
-  &:focus {
-    border-color: var(--primary-purple);
-    outline: none;
-  }
-`;
-
-const ImageUploadArea = styled.div`
-      border: 2px dashed var(--border);
-  border-radius: 8px;
-  padding: 2rem;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  
-  &:hover {
-    border-color: var(--primary-purple);
-    background: rgba(102, 126, 234, 0.05);
-  }
-`;
 
 const PollCreator = ({ onClose, socket }) => {
   const [question, setQuestion] = useState('');

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   FaTimes, 
   FaPaperPlane, 
@@ -11,9 +11,8 @@ import {
   FaChalkboardTeacher,
   FaBan
 } from 'react-icons/fa';
-import { setChatOpen, addMessage } from '../store/slices/chatSlice';
+import { setChatOpen } from '../store/slices/chatSlice';
 import { removeUser } from '../store/slices/pollSlice';
-import { socket } from '../store/slices/socketSlice';
 import toast from 'react-hot-toast';
 
 const ChatOverlay = styled(motion.div).withConfig({

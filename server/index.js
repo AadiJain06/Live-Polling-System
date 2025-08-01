@@ -41,6 +41,24 @@ let sessionAnalytics = {
   studentPerformance: new Map() // Track each student's performance
 };
 
+// Force reset session state on server start
+console.log('Server starting - resetting session state');
+sessionActive = false;
+sessionStartTime = null;
+sessionEndTime = null;
+
+// Also reset session analytics
+sessionAnalytics = {
+  totalPolls: 0,
+  totalStudents: 0,
+  totalCorrectAnswers: 0,
+  totalIncorrectAnswers: 0,
+  averageAccuracy: 0,
+  studentPerformance: new Map()
+};
+
+
+
 // Analytics tracking
 let responseTimes = new Map(); // Track response times for each student
 let participationData = new Map(); // Track participation data
@@ -90,6 +108,48 @@ io.on('connection', (socket) => {
     // Send current chat messages to new user
     if (chatMessages.length > 0) {
       socket.emit('chat-history', chatMessages);
+    }
+    
+    // Send current session state to teachers
+    if (data.userType === 'teacher') {
+      // Force reset session state for new teacher connections
+      if (sessionActive) {
+        console.log('Resetting session state for new teacher connection');
+        sessionActive = false;
+        sessionStartTime = null;
+        sessionEndTime = null;
+        sessionAnalytics = {
+          totalPolls: 0,
+          totalStudents: 0,
+          totalCorrectAnswers: 0,
+          totalIncorrectAnswers: 0,
+          averageAccuracy: 0,
+          studentPerformance: new Map()
+        };
+      }
+      
+      console.log('Sending session state to teacher:', {
+        sessionActive,
+        sessionStartTime,
+        sessionAnalytics: sessionActive ? {
+          totalPolls: sessionAnalytics.totalPolls,
+          totalStudents: sessionAnalytics.totalStudents,
+          totalCorrectAnswers: sessionAnalytics.totalCorrectAnswers,
+          totalIncorrectAnswers: sessionAnalytics.totalIncorrectAnswers,
+          averageAccuracy: sessionAnalytics.averageAccuracy
+        } : null
+      });
+      socket.emit('session-state', {
+        sessionActive,
+        sessionStartTime,
+        sessionAnalytics: sessionActive ? {
+          totalPolls: sessionAnalytics.totalPolls,
+          totalStudents: sessionAnalytics.totalStudents,
+          totalCorrectAnswers: sessionAnalytics.totalCorrectAnswers,
+          totalIncorrectAnswers: sessionAnalytics.totalIncorrectAnswers,
+          averageAccuracy: sessionAnalytics.averageAccuracy
+        } : null
+      });
     }
     
     // Update connected users count and send user list
@@ -382,14 +442,30 @@ io.on('connection', (socket) => {
 
   // Session management events
   socket.on('start-session', () => {
+    console.log('=== START SESSION REQUESTED ===');
+    console.log('Start session requested by:', socket.userName);
+    console.log('Current sessionActive state:', sessionActive);
+    
     if (socket.userType !== 'teacher') {
       socket.emit('error', { message: 'Only teachers can start sessions' });
       return;
     }
 
+    // Force reset session state if it's stuck
     if (sessionActive) {
-      socket.emit('error', { message: 'Session already active' });
-      return;
+      console.log('=== FORCING SESSION RESET ===');
+      sessionActive = false;
+      sessionStartTime = null;
+      sessionEndTime = null;
+      sessionAnalytics = {
+        totalPolls: 0,
+        totalStudents: 0,
+        totalCorrectAnswers: 0,
+        totalIncorrectAnswers: 0,
+        averageAccuracy: 0,
+        studentPerformance: new Map()
+      };
+      console.log('Session reset complete, sessionActive is now:', sessionActive);
     }
 
     sessionActive = true;
@@ -418,6 +494,8 @@ io.on('connection', (socket) => {
       totalStudents: students.size
     });
   });
+
+
 
   socket.on('end-session', () => {
     if (socket.userType !== 'teacher') {
@@ -978,7 +1056,52 @@ app.get('/api/student/performance/:studentName', (req, res) => {
   res.json(performance);
 });
 
+// Reset session endpoint for debugging
+app.post('/api/session/reset', (req, res) => {
+  console.log('Resetting session state via API');
+  sessionActive = false;
+  sessionStartTime = null;
+  sessionEndTime = null;
+  sessionAnalytics = {
+    totalPolls: 0,
+    totalStudents: 0,
+    totalCorrectAnswers: 0,
+    totalIncorrectAnswers: 0,
+    averageAccuracy: 0,
+    studentPerformance: new Map()
+  };
+  res.json({ success: true, message: 'Session reset' });
+});
+
+// Get current session state
+app.get('/api/session/state', (req, res) => {
+  res.json({
+    sessionActive,
+    sessionStartTime,
+    sessionEndTime,
+    sessionAnalytics: sessionActive ? {
+      totalPolls: sessionAnalytics.totalPolls,
+      totalStudents: sessionAnalytics.totalStudents,
+      totalCorrectAnswers: sessionAnalytics.totalCorrectAnswers,
+      totalIncorrectAnswers: sessionAnalytics.totalIncorrectAnswers,
+      averageAccuracy: sessionAnalytics.averageAccuracy
+    } : null
+  });
+});
+
+// Debug endpoint to check session state
+app.get('/api/debug/session', (req, res) => {
+  res.json({
+    sessionActive,
+    sessionStartTime,
+    sessionEndTime,
+    message: `Session is ${sessionActive ? 'ACTIVE' : 'INACTIVE'}`
+  });
+});
+
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
+  console.log('=== SERVER STARTED WITH SESSION FIX ===');
   console.log(`Server running on port ${PORT}`);
+  console.log('Initial session state:', { sessionActive, sessionStartTime, sessionEndTime });
 }); 

@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { FaUser, FaArrowLeft } from 'react-icons/fa';
+import { FaArrowLeft } from 'react-icons/fa';
 import { setUserName } from '../store/slices/authSlice';
 
 const Container = styled.div`

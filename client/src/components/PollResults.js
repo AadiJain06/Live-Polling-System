@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { motion } from 'framer-motion';
+
 
 const ResultsContainer = styled.div`
   display: flex;
@@ -21,14 +21,7 @@ const QuestionTitle = styled.h3`
   color: var(--text-primary);
 `;
 
-const Timer = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--error);
-  font-weight: 600;
-  font-size: 1rem;
-`;
+
 
 const QuestionBox = styled.div`
   background: var(--surface);
@@ -137,9 +130,7 @@ const PollResults = ({ results, poll }) => {
       case 'single-choice':
       case 'yes-no':
         const options = poll.options || [];
-        const leadingOption = percentages ? Object.keys(percentages).reduce((a, b) => 
-          (percentages[a] || 0) > (percentages[b] || 0) ? a : b, ''
-        ) : '';
+
 
         return (
           <OptionsContainer>

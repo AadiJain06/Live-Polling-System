@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaBolt, FaPlus, FaChartBar, FaComments, FaSignOutAlt, FaEye, FaHistory, FaUsers, FaClock, FaCog, FaChartPie } from 'react-icons/fa';
+import { FaBolt, FaPlus, FaChartBar, FaComments, FaSignOutAlt, FaHistory, FaUsers, FaClock, FaCog, FaChartPie } from 'react-icons/fa';
 import { logout } from '../store/slices/authSlice';
 import { 
   setCurrentPoll, 
@@ -236,7 +236,7 @@ const TeacherDashboard = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { userName } = useSelector((state) => state.auth);
-  const { currentPoll, results, timeLeft, error, connectedUsers, userList } = useSelector((state) => state.poll);
+  const { currentPoll, results, timeLeft, error, connectedUsers } = useSelector((state) => state.poll);
   const { isConnected } = useSelector((state) => state.socket);
   const { isChatOpen } = useSelector((state) => state.chat);
   
@@ -246,8 +246,7 @@ const TeacherDashboard = () => {
   const [showPollHistory, setShowPollHistory] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAnalyticsOpen, setIsAnalyticsOpen] = useState(false);
-  const [sessionActive, setSessionActive] = useState(false);
-  const [sessionAnalytics, setSessionAnalytics] = useState(null);
+
   const [individualAnswers, setIndividualAnswers] = useState([]);
 
   useEffect(() => {
@@ -360,19 +359,9 @@ const TeacherDashboard = () => {
       toast.success(`Student ${data.studentName} has been removed`);
     });
 
-    // Session management events
-    newSocket.on('session-started', (data) => {
-      console.log('Session started:', data);
-      setSessionActive(true);
-      toast.success('Session started successfully!');
-    });
 
-    newSocket.on('session-ended', (data) => {
-      console.log('Session ended:', data);
-      setSessionActive(false);
-      setSessionAnalytics(data.sessionAnalytics);
-      toast.success('Session ended! Check analytics for results.');
-    });
+
+
 
     return () => {
       console.log('Cleaning up socket connection...');
@@ -386,6 +375,12 @@ const TeacherDashboard = () => {
       dispatch(clearPollError());
     }
   }, [error, dispatch]);
+
+
+
+
+
+
 
   const handleLogout = () => {
     if (socketRef.current) {
@@ -409,17 +404,13 @@ const TeacherDashboard = () => {
     dispatch(setChatOpen(!isChatOpen));
   };
 
-  const handleStartSession = () => {
-    if (socketRef.current) {
-      socketRef.current.emit('start-session');
-    }
-  };
 
-  const handleEndSession = () => {
-    if (socketRef.current) {
-      socketRef.current.emit('end-session');
-    }
-  };
+
+
+
+
+
+
 
 
 
@@ -439,21 +430,7 @@ const TeacherDashboard = () => {
             {isConnected ? 'Connected' : 'Disconnected'}
           </StatusIndicator>
           
-          {sessionActive && (
-            <div style={{
-              background: 'var(--success)',
-              color: 'white',
-              padding: '0.5rem 1rem',
-              borderRadius: '20px',
-              fontSize: '0.9rem',
-              fontWeight: '600',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem'
-            }}>
-              🟢 Session Active
-            </div>
-          )}
+
           
           <ThemeToggle />
           
@@ -501,12 +478,7 @@ const TeacherDashboard = () => {
               <StatValue>{connectedUsers.teachers}</StatValue>
               <StatLabel>Teachers</StatLabel>
             </StatItem>
-            <StatItem>
-              <StatValue style={{ color: sessionActive ? 'var(--success)' : 'var(--text-muted)' }}>
-                {sessionActive ? '🟢' : '⚪'}
-              </StatValue>
-              <StatLabel>Session Status</StatLabel>
-            </StatItem>
+
           </UserStats>
           
           <ButtonGroup>
@@ -557,27 +529,10 @@ const TeacherDashboard = () => {
               Analytics & Insights
             </SecondaryButton>
 
-            {!sessionActive ? (
-              <SecondaryButton
-                onClick={handleStartSession}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                style={{ background: 'var(--success)' }}
-              >
-                <FaBolt />
-                Start Session
-              </SecondaryButton>
-            ) : (
-              <SecondaryButton
-                onClick={handleEndSession}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                style={{ background: 'var(--error)' }}
-              >
-                <FaBolt />
-                End Session
-              </SecondaryButton>
-            )}
+
+
+
+
             
 
           </ButtonGroup>
@@ -616,81 +571,7 @@ const TeacherDashboard = () => {
           </Section>
         )}
 
-        {sessionAnalytics && (
-          <Section>
-            <SectionTitle>
-              <FaChartPie />
-              Session Analytics
-            </SectionTitle>
-            <div style={{
-              background: 'var(--surface)',
-              border: '1px solid var(--border)',
-              borderRadius: '12px',
-              padding: '1.5rem',
-              marginBottom: '1rem'
-            }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
-                <div style={{ textAlign: 'center', padding: '1rem', background: 'var(--background)', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--success)' }}>
-                    {sessionAnalytics.totalCorrectAnswers}
-                  </div>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Correct Answers</div>
-                </div>
-                <div style={{ textAlign: 'center', padding: '1rem', background: 'var(--background)', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--error)' }}>
-                    {sessionAnalytics.totalIncorrectAnswers}
-                  </div>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Incorrect Answers</div>
-                </div>
-                <div style={{ textAlign: 'center', padding: '1rem', background: 'var(--background)', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '1.5rem', fontWeight: '700', color: 'var(--primary-purple)' }}>
-                    {sessionAnalytics.averageAccuracy}%
-                  </div>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Average Accuracy</div>
-                </div>
-              </div>
-              
-              <div style={{ marginTop: '1rem' }}>
-                <h4 style={{ marginBottom: '1rem', color: 'var(--text-primary)' }}>Student Performance:</h4>
-                <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-                  {sessionAnalytics.studentPerformance.map((student, index) => (
-                    <div key={index} style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '0.75rem',
-                      borderBottom: '1px solid var(--border)',
-                      background: 'var(--background)',
-                      marginBottom: '0.5rem',
-                      borderRadius: '8px'
-                    }}>
-                      <div>
-                        <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
-                          {student.studentName}
-                        </div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                          {student.totalAnswers} answers
-                        </div>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <div style={{ 
-                          fontSize: '1.1rem', 
-                          fontWeight: '700', 
-                          color: student.accuracy >= 70 ? 'var(--success)' : student.accuracy >= 50 ? 'var(--warning)' : 'var(--error)' 
-                        }}>
-                          {student.accuracy}%
-                        </div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-                          {student.correctAnswers}/{student.totalAnswers} correct
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Section>
-        )}
+
 
         {currentPoll && individualAnswers.length > 0 && (
           <Section>

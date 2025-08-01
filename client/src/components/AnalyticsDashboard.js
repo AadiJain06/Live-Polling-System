@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaTimes, FaClock, FaUsers, FaChartLine, FaDownload, FaEye, FaCheckCircle, FaTimesCircle, FaCheck } from 'react-icons/fa';
+import { FaTimes, FaClock, FaUsers, FaChartLine, FaDownload, FaCheckCircle, FaTimesCircle, FaCheck } from 'react-icons/fa';
 
 const Overlay = styled(motion.div)`
   position: fixed;
@@ -207,11 +207,7 @@ const TimeBucketLabel = styled.div`
   margin-top: 0.25rem;
 `;
 
-const ExportSection = styled.div`
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 1px solid var(--border);
-`;
+
 
 const ExportButtons = styled.div`
   display: flex;

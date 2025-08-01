@@ -10,7 +10,7 @@ import TeacherLogin from './components/TeacherLogin';
 import StudentAuth from './components/StudentAuth';
 import TeacherDashboard from './components/TeacherDashboard';
 import StudentDashboard from './components/StudentDashboard';
-import ThemeToggle from './components/ThemeToggle';
+
 import Settings from './components/Settings';
 
 import ProtectedRoute from './components/ProtectedRoute';

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { FaTimes, FaHistory } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import io from 'socket.io-client';

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { FaCheck, FaStar, FaImage, FaAlignLeft } from 'react-icons/fa';
+import { FaCheck, FaStar, FaAlignLeft } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
 const Container = styled.div`
@@ -204,7 +204,7 @@ const PollAnswer = ({ poll, socket, onAnswer }) => {
   const [rating, setRating] = useState(null);
   const [textResponse, setTextResponse] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { userName } = useSelector((state) => state.auth);
+
 
   const handleOptionSelect = (option) => {
     if (isSubmitting) return;
